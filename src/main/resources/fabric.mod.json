@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "mcbc_datagen",
+  "version": "${version}",
+  "name": "MCBC Datagen",
+  "description": "Data generator for Minecraft biome classification",
+  "authors": [
+    "Lahusa"
+  ],
+  "contact": {
+    "website": "https://github.com/OfficialLahusa",
+    "repo": "https://github.com/OfficialLahusa"
+  },
+  "license": "MIT",
+  "icon": "assets/mcbc_datagen/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.lahusa.mcbc_datagen.MCBCDataGenClient"
+    ],
+    "main": [
+      "com.lahusa.mcbc_datagen.MCBCDataGenMod"
+    ]
+  },
+  "mixins": [
+    "mcbc_datagen.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.10",
+    "fabric": "*",
+    "minecraft": "1.19.2"
+  }
+}
