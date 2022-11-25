@@ -1,14 +1,16 @@
 package com.lahusa.mcbc_datagen.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.tutorial.TutorialStep;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -22,7 +24,8 @@ import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
 
-import java.io.File;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +39,7 @@ public class DataGenCommand {
     static {
         rand = Random.create();
     }
+
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
             literal("datagen").executes(
@@ -44,6 +48,23 @@ public class DataGenCommand {
                     if(player == null) {
                         throw new SimpleCommandExceptionType(Text.literal("This command has to be executed by a player")).create();
                     }
+
+                    MinecraftServer server = Objects.requireNonNull(player.getServer());
+
+                    // Grant all recipes
+                    player.unlockRecipes(server.getRecipeManager().values());
+
+                    // Grant all advancements
+                    Collection<Advancement> advancements = server.getAdvancementLoader().getAdvancements();
+                    for(Advancement advancement : advancements) {
+                        AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+                        for(String criterion : progress.getUnobtainedCriteria()) {
+                            player.getAdvancementTracker().grantCriterion(advancement, criterion);
+                        }
+                    }
+
+                    // Disable tutorial
+                    MinecraftClient.getInstance().options.tutorialStep = TutorialStep.NONE;
 
                     // Randomize hotbar content
                     randomHotbar(player);
