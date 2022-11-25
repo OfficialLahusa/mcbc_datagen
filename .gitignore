@@ -5,6 +5,9 @@
 *.ipr
 *.iws
 
+# CRINGE
+run_server/
+
 # IntelliJ
 out/
 # mpeltonen/sbt-idea plugin
