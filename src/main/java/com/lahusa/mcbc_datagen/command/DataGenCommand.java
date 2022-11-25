@@ -120,7 +120,7 @@ public class DataGenCommand {
 
         // TP
         player.teleport(world, x, y , z, yaw, pitch);
-        return MessageFormat.format("{0}_{1}_{2}", biomeID, x, z);
+        return biomeID + "-" + x + "_" + z;
     }
 
     private static void randomHotbar(ServerPlayerEntity player) {
