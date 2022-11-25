@@ -21,9 +21,11 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,6 +53,9 @@ public class DataGenCommand {
 
                     MinecraftServer server = Objects.requireNonNull(player.getServer());
 
+                    // Deactivate advancement announcements in chat
+                    server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
+
                     // Grant all recipes
                     player.unlockRecipes(server.getRecipeManager().values());
 
@@ -62,9 +67,6 @@ public class DataGenCommand {
                             player.getAdvancementTracker().grantCriterion(advancement, criterion);
                         }
                     }
-
-                    // Disable tutorial
-                    MinecraftClient.getInstance().options.tutorialStep = TutorialStep.NONE;
 
                     // Randomize hotbar content
                     randomHotbar(player);
@@ -104,6 +106,7 @@ public class DataGenCommand {
         // Get top non-leaf block
         int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
 
+        // Get biome
         Optional<RegistryKey<Biome>> biomeRegistryKey = world.getBiome(new BlockPos(x, y, z)).getKey();
 
         // Stop force loading
@@ -111,12 +114,13 @@ public class DataGenCommand {
 
         if(biomeRegistryKey.isEmpty()) throw new IllegalStateException("BlockPos had no associated Biome");
 
+        // Format biome
         String biomeID = biomeRegistryKey.get().getValue().getPath();
         System.out.println("Biome: " + biomeID);
 
         // TP
         player.teleport(world, x, y , z, yaw, pitch);
-        return biomeID;
+        return MessageFormat.format("{0}_{1}_{2}", biomeID, x, z);
     }
 
     private static void randomHotbar(ServerPlayerEntity player) {
