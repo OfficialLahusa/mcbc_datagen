@@ -102,12 +102,18 @@ public class DataGenCommand {
         player.getInventory().clear();
 
         for(int i = 0; i < 9; i++) {
+            // Make some slots empty
+            if(rand.nextInt(3)==0) continue;
+
             Optional<RegistryEntry<Item>> randomItemOpt = Registry.ITEM.getRandom(rand);
             if(randomItemOpt.isEmpty()) throw new IllegalStateException("Random item was empty");
             Item randomItem = randomItemOpt.get().value();
 
-            player.getInventory().insertStack(i, new ItemStack(randomItem, rand.nextInt(randomItem.getMaxCount()+1)));
+            player.getInventory().insertStack(i, new ItemStack(randomItem, rand.nextBetween(1, randomItem.getMaxCount())));
         }
+
+        // player.getInventory().selectedSlot = rand.nextInt(9);
+        // TODO: Inventory update packet
     }
 
     private static void randomTimeWeather(ServerPlayerEntity player) {
