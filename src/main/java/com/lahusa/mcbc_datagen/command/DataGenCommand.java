@@ -32,6 +32,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
+import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -69,19 +70,18 @@ public class DataGenCommand {
                     randomizeVisualStats(player);
                     randomizeExperience(player);
                     randomizeTimeAndWeather(player);
+                    randomizeHudVisibility(player);
 
                     // Teleport player and get biome identifier without namespace
-                    String biome = randomizePosition(player);
+                    String fileName = randomizePosition(player);
 
-                    // Wait 10s and save screenshot
+                    // Wait 10s and send force screenshot packet to player client
                     ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
-
-                    exec.schedule(() -> ScreenshotRecorder.saveScreenshot(
-                        FabricLoader.getInstance().getGameDir().toFile(),
-                        biome + ".png",
-                        MinecraftClient.getInstance().getFramebuffer(),
-                        (message) -> { }
-                    ), 10, TimeUnit.SECONDS);
+                    exec.schedule(() -> {
+                        PacketByteBuf fileNameBuf = PacketByteBufs.create();
+                        fileNameBuf.writeString(fileName);
+                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT, fileNameBuf);
+                    }, 10, TimeUnit.SECONDS);
                     return 1;
                 }
             )
@@ -116,7 +116,7 @@ public class DataGenCommand {
 
         // TP
         player.teleport(world, x, y , z, yaw, pitch);
-        return biomeID + "-" + x + "_" + z;
+        return biomeID + "-" + x + "_" + z + ".png";
     }
 
     private static void unlockAllContent(ServerPlayerEntity player, MinecraftServer server) {
@@ -197,6 +197,10 @@ public class DataGenCommand {
         armorAttribute.setBaseValue(rand.nextBoolean() ? rand.nextBetween(1,20) : 0);
     }
 
+    private static void randomizeHudVisibility(ServerPlayerEntity player) {
+        setClientHudHidded(player, rand.nextInt(4) == 0);
+    }
+
     private static void randomizeExperience(ServerPlayerEntity player) {
         player.setExperienceLevel(rand.nextBetween(0, 100));
         player.setExperiencePoints(rand.nextBetween(0, player.getNextLevelExperience()));
@@ -216,5 +220,11 @@ public class DataGenCommand {
         }
 
         return stack;
+    }
+
+    private static void setClientHudHidded(ServerPlayerEntity player, boolean hudHidden) {
+        PacketByteBuf hudHiddenPacketByteBuf = PacketByteBufs.create();
+        hudHiddenPacketByteBuf.writeBoolean(hudHidden);
+        ServerPlayNetworking.send(player, MCBCDataGenMod.SET_HUD_HIDDEN_PACKET_ID, hudHiddenPacketByteBuf);
     }
 }

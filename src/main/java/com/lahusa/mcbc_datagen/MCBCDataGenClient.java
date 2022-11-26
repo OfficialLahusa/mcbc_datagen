@@ -9,7 +9,9 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.entity.player.PlayerInventory;
 
 import java.util.Objects;
@@ -33,6 +35,26 @@ public class MCBCDataGenClient implements ClientModInitializer {
                     inventory.selectedSlot = buf.readInt();
                 }
             }
+        );
+        // Set hud hidden packet
+        ClientPlayNetworking.registerGlobalReceiver(
+                MCBCDataGenMod.SET_HUD_HIDDEN_PACKET_ID,
+                (client, handler, buf, responseSender) -> {
+                    client.options.hudHidden = buf.readBoolean();
+                }
+        );
+        // Force screenshot packet
+        ClientPlayNetworking.registerGlobalReceiver(
+                MCBCDataGenMod.FORCE_SCREENSHOT,
+                (client, handler, buf, responseSender) -> {
+                    String filename = buf.readString();
+                    ScreenshotRecorder.saveScreenshot(
+                            FabricLoader.getInstance().getGameDir().toFile(),
+                            filename,
+                            MinecraftClient.getInstance().getFramebuffer(),
+                            (message) -> { }
+                    );
+                }
         );
     }
 }

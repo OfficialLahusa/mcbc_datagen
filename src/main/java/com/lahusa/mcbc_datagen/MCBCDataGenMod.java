@@ -8,8 +8,9 @@ import net.minecraft.util.Identifier;
 public class MCBCDataGenMod implements ModInitializer {
 
     public static final String MODID = "mcbc_datagen";
-
     public static final Identifier INVENTORY_SLOT_CHANGE_PACKET_ID = new Identifier(MODID, "inv_slot_change");
+    public static final Identifier SET_HUD_HIDDEN_PACKET_ID = new Identifier(MODID, "set_hud_hidden");
+    public static final Identifier FORCE_SCREENSHOT = new Identifier(MODID, "force_screenshot");
 
     @Override
     public void onInitialize() {
