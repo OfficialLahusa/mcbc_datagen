@@ -9,9 +9,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.pack.ResourcePackOrganizer;
-import net.minecraft.client.tutorial.TutorialStep;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,11 +26,11 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
 
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,14 +61,14 @@ public class DataGenCommand {
                     // Unlock all content
                     unlockAllContent(player, server);
 
-                    // Randomize hotbar content
-                    randomHotbar(player);
-
-                    // Randomize time and weather
-                    randomTimeWeather(player);
+                    // Randomize state
+                    randomizeHotbar(player);
+                    randomizeGameMode(player);
+                    randomizeHPandHunger(player);
+                    randomizeTimeAndWeather(player);
 
                     // Teleport player and get biome identifier without namespace
-                    String biome = randomTeleport(player);
+                    String biome = randomizePosition(player);
 
                     // Wait 10s and save screenshot
                     ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
@@ -86,7 +85,7 @@ public class DataGenCommand {
         );
     }
 
-    private static String randomTeleport(ServerPlayerEntity player) {
+    private static String randomizePosition(ServerPlayerEntity player) {
         ServerWorld world = player.getWorld();
 
         int x = rand.nextInt(10000000);
@@ -134,7 +133,7 @@ public class DataGenCommand {
         }
     }
 
-    private static void randomHotbar(ServerPlayerEntity player) {
+    private static void randomizeHotbar(ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
 
         inventory.clear();
@@ -161,10 +160,30 @@ public class DataGenCommand {
         ServerPlayNetworking.send(player, MCBCDataGenMod.INVENTORY_SLOT_CHANGE_PACKET_ID, slotPacketByteBuf);
     }
 
-    private static void randomTimeWeather(ServerPlayerEntity player) {
+    private static void randomizeTimeAndWeather(ServerPlayerEntity player) {
         boolean raining = rand.nextInt(5) == 0;
         boolean thundering = raining && rand.nextBoolean();
         player.getWorld().setWeather(0, 0, raining, thundering);
         player.getWorld().setTimeOfDay(rand.nextInt(24000));
+    }
+
+    private static void randomizeGameMode(ServerPlayerEntity player) {
+        int gameModeRoll = rand.nextInt(6);
+        GameMode gameMode = switch(gameModeRoll) {
+            case 0, 1, 2 -> GameMode.CREATIVE;
+            case 3, 4 -> GameMode.SURVIVAL;
+            case 5 -> GameMode.ADVENTURE;
+            default -> throw new IllegalStateException("Unexpected value: " + gameModeRoll);
+        };
+
+        player.changeGameMode(gameMode);
+    }
+
+    private static void randomizeHPandHunger(ServerPlayerEntity player) {
+        HungerManager hungerManager = player.getHungerManager();
+
+        player.setHealth(rand.nextBetween(1,20));
+        hungerManager.setFoodLevel(rand.nextBetween(0,20));
+        hungerManager.setSaturationLevel(rand.nextBetween(0,20));
     }
 }
