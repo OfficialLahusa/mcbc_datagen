@@ -10,6 +10,9 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -151,6 +154,10 @@ public class DataGenCommand {
         if(rand.nextBoolean()) {
             inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
         }
+
+        // Randomize (or reset) armor value
+        EntityAttributeInstance armorAttribute = Objects.requireNonNull(player.getAttributeInstance(EntityAttributes.GENERIC_ARMOR));
+        armorAttribute.setBaseValue(rand.nextBoolean() ? rand.nextBetween(1,20) : 0);
 
         // Set new selected slot
         int newSelectedSlot = rand.nextInt(9);
