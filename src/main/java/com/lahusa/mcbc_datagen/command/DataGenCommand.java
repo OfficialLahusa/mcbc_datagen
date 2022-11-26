@@ -193,7 +193,6 @@ public class DataGenCommand {
 
         player.setHealth(rand.nextBetween(1,20));
         hungerManager.setFoodLevel(rand.nextBetween(0,20));
-        hungerManager.setSaturationLevel(rand.nextBetween(0,20));
     }
 
     private static void randomizeExperience(ServerPlayerEntity player) {
