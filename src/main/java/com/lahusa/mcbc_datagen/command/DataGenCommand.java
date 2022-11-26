@@ -62,7 +62,7 @@ public class DataGenCommand {
                     unlockAllContent(player, server);
 
                     // Randomize state
-                    randomizeHotbar(player);
+                    randomizeInventory(player);
                     randomizeGameMode(player);
                     randomizeHPandHunger(player);
                     randomizeExperience(player);
@@ -134,7 +134,7 @@ public class DataGenCommand {
         }
     }
 
-    private static void randomizeHotbar(ServerPlayerEntity player) {
+    private static void randomizeInventory(ServerPlayerEntity player) {
         PlayerInventory inventory = player.getInventory();
 
         inventory.clear();
@@ -144,18 +144,19 @@ public class DataGenCommand {
             // Make some slots empty
             if(rand.nextInt(3)==0) continue;
 
-            // Get random item
-            Optional<RegistryEntry<Item>> randomItemOpt = Registry.ITEM.getRandom(rand);
-            if(randomItemOpt.isEmpty()) throw new IllegalStateException("Random item was empty");
-            Item randomItem = randomItemOpt.get().value();
-
-            player.getInventory().insertStack(i, new ItemStack(randomItem, rand.nextBetween(1, randomItem.getMaxCount())));
+            inventory.insertStack(i, getRandomizedItemStack());
         }
 
-        int newSelectedSlot = rand.nextInt(9);
-        player.getInventory().selectedSlot = newSelectedSlot;
+        // Occasionally fill offhand slot with random item
+        if(rand.nextBoolean()) {
+            inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
+        }
 
-        // Send Inventory update packet
+        // Set new selected slot
+        int newSelectedSlot = rand.nextInt(9);
+        inventory.selectedSlot = newSelectedSlot;
+
+        // Send slot selection update packet
         PacketByteBuf slotPacketByteBuf = PacketByteBufs.create();
         slotPacketByteBuf.writeInt(newSelectedSlot);
         ServerPlayNetworking.send(player, MCBCDataGenMod.INVENTORY_SLOT_CHANGE_PACKET_ID, slotPacketByteBuf);
@@ -191,5 +192,21 @@ public class DataGenCommand {
     private static void randomizeExperience(ServerPlayerEntity player) {
         player.setExperienceLevel(rand.nextBetween(0, 100));
         player.setExperiencePoints(rand.nextBetween(0, player.getNextLevelExperience()));
+    }
+
+    private static ItemStack getRandomizedItemStack() {
+        // Get random item
+        Optional<RegistryEntry<Item>> randomItemOpt = Registry.ITEM.getRandom(rand);
+        if(randomItemOpt.isEmpty()) throw new IllegalStateException("Random item was empty");
+        Item randomItem = randomItemOpt.get().value();
+
+        ItemStack stack = new ItemStack(randomItem, rand.nextBetween(1, randomItem.getMaxCount()));
+
+        // Randomly damage stack
+        if(randomItem.isDamageable() && rand.nextInt(2)!=0) {
+            stack.setDamage(rand.nextBetween(0, randomItem.getMaxDamage()));
+        }
+
+        return stack;
     }
 }
