@@ -1,15 +1,21 @@
 package com.lahusa.mcbc_datagen.command;
 
+import com.lahusa.mcbc_datagen.MCBCDataGenMod;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.pack.ResourcePackOrganizer;
 import net.minecraft.client.tutorial.TutorialStep;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -129,12 +135,16 @@ public class DataGenCommand {
     }
 
     private static void randomHotbar(ServerPlayerEntity player) {
-        player.getInventory().clear();
+        PlayerInventory inventory = player.getInventory();
 
+        inventory.clear();
+
+        // Fill individual hotbar slots
         for(int i = 0; i < 9; i++) {
             // Make some slots empty
             if(rand.nextInt(3)==0) continue;
 
+            // Get random item
             Optional<RegistryEntry<Item>> randomItemOpt = Registry.ITEM.getRandom(rand);
             if(randomItemOpt.isEmpty()) throw new IllegalStateException("Random item was empty");
             Item randomItem = randomItemOpt.get().value();
@@ -142,8 +152,13 @@ public class DataGenCommand {
             player.getInventory().insertStack(i, new ItemStack(randomItem, rand.nextBetween(1, randomItem.getMaxCount())));
         }
 
-        // player.getInventory().selectedSlot = rand.nextInt(9);
-        // TODO: Inventory update packet
+        int newSelectedSlot = rand.nextInt(9);
+        player.getInventory().selectedSlot = newSelectedSlot;
+
+        // Send Inventory update packet
+        PacketByteBuf slotPacketByteBuf = PacketByteBufs.create();
+        slotPacketByteBuf.writeInt(newSelectedSlot);
+        ServerPlayNetworking.send(player, MCBCDataGenMod.INVENTORY_SLOT_CHANGE_PACKET_ID, slotPacketByteBuf);
     }
 
     private static void randomTimeWeather(ServerPlayerEntity player) {
