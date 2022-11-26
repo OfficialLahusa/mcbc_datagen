@@ -10,7 +10,6 @@ import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
-import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.HungerManager;
@@ -67,7 +66,7 @@ public class DataGenCommand {
                     // Randomize state
                     randomizeInventory(player);
                     randomizeGameMode(player);
-                    randomizeHPandHunger(player);
+                    randomizeVisualStats(player);
                     randomizeExperience(player);
                     randomizeTimeAndWeather(player);
 
@@ -155,10 +154,6 @@ public class DataGenCommand {
             inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
         }
 
-        // Randomize (or reset) armor value
-        EntityAttributeInstance armorAttribute = Objects.requireNonNull(player.getAttributeInstance(EntityAttributes.GENERIC_ARMOR));
-        armorAttribute.setBaseValue(rand.nextBoolean() ? rand.nextBetween(1,20) : 0);
-
         // Set new selected slot
         int newSelectedSlot = rand.nextInt(9);
         inventory.selectedSlot = newSelectedSlot;
@@ -188,11 +183,18 @@ public class DataGenCommand {
         player.changeGameMode(gameMode);
     }
 
-    private static void randomizeHPandHunger(ServerPlayerEntity player) {
+    private static void randomizeVisualStats(ServerPlayerEntity player) {
         HungerManager hungerManager = player.getHungerManager();
 
+        // Set HP
         player.setHealth(rand.nextBetween(1,20));
+
+        // Set hunger bars
         hungerManager.setFoodLevel(rand.nextBetween(0,20));
+
+        // Randomize (or reset) armor value
+        EntityAttributeInstance armorAttribute = Objects.requireNonNull(player.getAttributeInstance(EntityAttributes.GENERIC_ARMOR));
+        armorAttribute.setBaseValue(rand.nextBoolean() ? rand.nextBetween(1,20) : 0);
     }
 
     private static void randomizeExperience(ServerPlayerEntity player) {
