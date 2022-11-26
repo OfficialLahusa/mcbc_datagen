@@ -53,20 +53,8 @@ public class DataGenCommand {
 
                     MinecraftServer server = Objects.requireNonNull(player.getServer());
 
-                    // Deactivate advancement announcements in chat
-                    server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
-
-                    // Grant all recipes
-                    player.unlockRecipes(server.getRecipeManager().values());
-
-                    // Grant all advancements
-                    Collection<Advancement> advancements = server.getAdvancementLoader().getAdvancements();
-                    for(Advancement advancement : advancements) {
-                        AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
-                        for(String criterion : progress.getUnobtainedCriteria()) {
-                            player.getAdvancementTracker().grantCriterion(advancement, criterion);
-                        }
-                    }
+                    // Unlock all content
+                    unlockAllContent(player, server);
 
                     // Randomize hotbar content
                     randomHotbar(player);
@@ -121,6 +109,23 @@ public class DataGenCommand {
         // TP
         player.teleport(world, x, y , z, yaw, pitch);
         return biomeID + "-" + x + "_" + z;
+    }
+
+    private static void unlockAllContent(ServerPlayerEntity player, MinecraftServer server) {
+        // Deactivate advancement announcements in chat
+        server.getGameRules().get(GameRules.ANNOUNCE_ADVANCEMENTS).set(false, server);
+
+        // Grant all recipes
+        player.unlockRecipes(server.getRecipeManager().values());
+
+        // Grant all advancements
+        Collection<Advancement> advancements = server.getAdvancementLoader().getAdvancements();
+        for(Advancement advancement : advancements) {
+            AdvancementProgress progress = player.getAdvancementTracker().getProgress(advancement);
+            for(String criterion : progress.getUnobtainedCriteria()) {
+                player.getAdvancementTracker().grantCriterion(advancement, criterion);
+            }
+        }
     }
 
     private static void randomHotbar(ServerPlayerEntity player) {
