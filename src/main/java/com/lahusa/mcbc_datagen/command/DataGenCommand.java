@@ -52,7 +52,9 @@ public class DataGenCommand {
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
-            literal("datagen").executes(
+            literal("datagen")
+                .requires(source -> source.hasPermissionLevel(2))
+                .executes(
                 context -> {
                     ServerPlayerEntity player = context.getSource().getPlayer();
                     if(player == null) {
