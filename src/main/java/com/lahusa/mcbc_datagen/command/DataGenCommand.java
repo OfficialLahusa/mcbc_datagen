@@ -65,6 +65,7 @@ public class DataGenCommand {
                     randomizeHotbar(player);
                     randomizeGameMode(player);
                     randomizeHPandHunger(player);
+                    randomizeExperience(player);
                     randomizeTimeAndWeather(player);
 
                     // Teleport player and get biome identifier without namespace
@@ -185,5 +186,10 @@ public class DataGenCommand {
         player.setHealth(rand.nextBetween(1,20));
         hungerManager.setFoodLevel(rand.nextBetween(0,20));
         hungerManager.setSaturationLevel(rand.nextBetween(0,20));
+    }
+
+    private static void randomizeExperience(ServerPlayerEntity player) {
+        player.setExperienceLevel(rand.nextBetween(0, 100));
+        player.setExperiencePoints(rand.nextBetween(0, player.getNextLevelExperience()));
     }
 }
