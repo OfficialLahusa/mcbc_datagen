@@ -96,7 +96,7 @@ public class DataGenCommand {
         int x = rand.nextInt(10000000);
         int z = rand.nextInt(10000000);
         int yaw = rand.nextInt(360) - 180;
-        int pitch = rand.nextInt(30) - 10;
+        int pitch = rand.nextBetween(-30, 30);
 
         // Start force loading (Make data available before tp)
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
