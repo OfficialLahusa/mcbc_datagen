@@ -241,12 +241,12 @@ public class DataGenerationManager {
             // Make some slots empty
             if(rand.nextInt(3)==0) continue;
 
-            inventory.insertStack(i, getRandomizedItemStack());
+            inventory.setStack(i, getRandomizedItemStack());
         }
 
         // Occasionally fill offhand slot with random item
         if(rand.nextInt(3)==0) {
-            inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
+            inventory.setStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
         }
 
         // Set new selected slot
