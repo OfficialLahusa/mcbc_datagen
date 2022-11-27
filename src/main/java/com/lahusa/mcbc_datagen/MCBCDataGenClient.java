@@ -32,9 +32,7 @@ public class MCBCDataGenClient implements ClientModInitializer {
         // Set hud hidden packet
         ClientPlayNetworking.registerGlobalReceiver(
                 MCBCDataGenMod.SET_HUD_HIDDEN_PACKET_ID,
-                (client, handler, buf, responseSender) -> {
-                    client.options.hudHidden = buf.readBoolean();
-                }
+                (client, handler, buf, responseSender) -> client.options.hudHidden = buf.readBoolean()
         );
         // Force screenshot packet
         ClientPlayNetworking.registerGlobalReceiver(
