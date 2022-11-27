@@ -1,20 +1,13 @@
 package com.lahusa.mcbc_datagen;
 
-import com.lahusa.mcbc_datagen.command.DataGenCommand;
 import com.lahusa.mcbc_datagen.command.ResolutionCommand;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.entity.player.PlayerInventory;
-
-import java.util.Objects;
 
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 public class MCBCDataGenClient implements ClientModInitializer {
@@ -22,7 +15,7 @@ public class MCBCDataGenClient implements ClientModInitializer {
     public void onInitializeClient() {
         // Clientside commands
         ClientCommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess) -> ResolutionCommand.register(dispatcher)
+            (dispatcher, registryAccess) -> ResolutionCommand.register(dispatcher)
         );
 
         // Clientside network packet handlers
@@ -45,15 +38,18 @@ public class MCBCDataGenClient implements ClientModInitializer {
         );
         // Force screenshot packet
         ClientPlayNetworking.registerGlobalReceiver(
-                MCBCDataGenMod.FORCE_SCREENSHOT,
+                MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID,
                 (client, handler, buf, responseSender) -> {
                     String filename = buf.readString();
                     ScreenshotRecorder.saveScreenshot(
                             FabricLoader.getInstance().getGameDir().toFile(),
                             filename,
-                            MinecraftClient.getInstance().getFramebuffer(),
+                            client.getFramebuffer(),
                             (message) -> { }
                     );
+
+                    // Send confirmation to server
+                    ClientPlayNetworking.send(MCBCDataGenMod.SCREENSHOT_CONFIRMATION_PACKET_ID, PacketByteBufs.create());
                 }
         );
     }
