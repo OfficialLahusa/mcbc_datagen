@@ -245,10 +245,8 @@ public class DataGenerationManager {
         }
 
         // Occasionally fill offhand slot with random item
-        if(rand.nextBoolean()) {
-            if(inventory.size() < PlayerInventory.OFF_HAND_SLOT) {
-                inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
-            }
+        if(rand.nextInt(3)==0) {
+            inventory.insertStack(PlayerInventory.OFF_HAND_SLOT, getRandomizedItemStack());
         }
 
         // Set new selected slot
