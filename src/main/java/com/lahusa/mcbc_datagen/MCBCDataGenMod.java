@@ -32,6 +32,7 @@ public class MCBCDataGenMod implements ModInitializer {
                 (handler, server) -> DataGenerationManager.removePlayer(handler.getPlayer())
         );
 
+        // Server tick events
         ServerLifecycleEvents.SERVER_STARTED.register(
                 server -> DataGenerationManager.initialize(server.getPlayerManager())
         );
