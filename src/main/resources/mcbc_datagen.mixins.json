@@ -9,7 +9,9 @@
     "ServerPlayNetworkHandlerMixin"
   ],
   "client": [
-    "AdvancementToastMixin"
+    "AdvancementToastMixin",
+    "MinecraftClientAccessor",
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
