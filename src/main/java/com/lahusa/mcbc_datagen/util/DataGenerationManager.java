@@ -33,7 +33,7 @@ public class DataGenerationManager {
     private static final LinkedList<DataGenerationSchedule> schedules;
     private static final Random rand;
     // 10 second delay
-    private static final int DELAY_TICKS = 200;
+    private static final int DELAY_TICKS = 240;
     private static PlayerManager serverPlayerManager;
 
     static {
@@ -52,7 +52,9 @@ public class DataGenerationManager {
     }
 
     public static void tick() {
-        if(serverPlayerManager == null) throw new IllegalStateException("tick was called without previous initialization");
+        if(serverPlayerManager == null) {
+            throw new IllegalStateException("tick was called without previous initialization");
+        }
 
         Iterator<DataGenerationSchedule> scheduleIterator = schedules.iterator();
         while(scheduleIterator.hasNext()) {
@@ -71,7 +73,7 @@ public class DataGenerationManager {
                 // Reset player to a clean state
                 cleanPlayerState(player);
 
-                System.out.println("Removed schedule because it was done");
+                System.out.println("Schedule finished and removed");
                 continue;
             }
 
@@ -82,16 +84,27 @@ public class DataGenerationManager {
                 System.out.println("Unlocked player content");
             }
 
-            // Iteration has to be started
+            // Iteration has to be randomized
             if(schedule.isIterationStartRequired()) {
                 // Randomize state (Pos, Inv, ...)
                 randomizePlayerState(player);
 
-                // Start
-                schedule.start(DELAY_TICKS);
-                System.out.println("Started schedule");
+                // Start iteration
+                schedule.startIteration();
+
+                System.out.println(
+                        "Started iteration (" + (schedule.getElapsedIterations() + 1)
+                                + "/" + schedule.getTotalIterations() + ")"
+                );
             }
-            // World loading delay already passed
+            // On TP confirmation
+            else if(schedule.isTeleportConfirmed() && !schedule.hasDelayStarted()) {
+                // Start
+                schedule.startDelay(DELAY_TICKS);
+
+                System.out.println("Teleport confirmed, started delay");
+            }
+            // Screenshot delay already passed
             else if(schedule.isDelayElapsed()){
                 // Screenshot wasn't requested yet
                 if(!schedule.isScreenShotRequested()) {
@@ -110,7 +123,7 @@ public class DataGenerationManager {
                 else if(schedule.isScreenShotConfirmed()) {
                     // Start next iteration
                     schedule.beginNewIteration();
-                    System.out.println("New iteration started");
+                    System.out.println("Got screenshot, ended iteration");
                 }
             }
         }
@@ -127,7 +140,15 @@ public class DataGenerationManager {
     public static void handleScreenShotConfirmation(ServerPlayerEntity player) {
         for(DataGenerationSchedule schedule : schedules) {
             if(schedule.getPlayer() == player) {
-                schedule.setScreenShotConfirmed(true);
+                schedule.confirmScreenShot();
+            }
+        }
+    }
+
+    public static void handleTeleportConfirmation(ServerPlayerEntity player) {
+        for(DataGenerationSchedule schedule : schedules) {
+            if(schedule.getPlayer() == player) {
+                schedule.confirmTeleport();
             }
         }
     }

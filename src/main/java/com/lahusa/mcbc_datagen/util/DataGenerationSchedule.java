@@ -7,11 +7,11 @@ public class DataGenerationSchedule {
     private final int totalIterations;
     private int remainingIterations;
     private int remainingDelayTicks;
-
+    private boolean isIterationStartRequired;
+    private boolean isTeleportConfirmed;
+    private boolean hasDelayStarted;
     private boolean isScreenShotRequested;
     private boolean isScreenShotConfirmed;
-
-    private boolean isIterationStartRequired;
 
     public DataGenerationSchedule(ServerPlayerEntity player, int totalIterations) {
         this.player = player;
@@ -19,6 +19,8 @@ public class DataGenerationSchedule {
         this.remainingIterations = totalIterations;
         this.remainingDelayTicks = 0;
         this.isIterationStartRequired = true;
+        this.isTeleportConfirmed = false;
+        this.hasDelayStarted = false;
         this.isScreenShotRequested = false;
         this.isScreenShotConfirmed = false;
     }
@@ -33,21 +35,27 @@ public class DataGenerationSchedule {
         --remainingIterations;
 
         isIterationStartRequired = true;
+        isTeleportConfirmed = false;
+        hasDelayStarted = false;
         isScreenShotRequested = false;
         isScreenShotConfirmed = false;
     }
 
-    public void start(int delayTicks) {
+    public void startDelay(int delayTicks) {
         remainingDelayTicks = delayTicks;
+        this.hasDelayStarted = true;
+    }
+
+    public void startIteration() {
         this.isIterationStartRequired = false;
     }
 
     public boolean isDelayElapsed() {
-        return remainingDelayTicks == 0;
+        return hasDelayStarted && remainingDelayTicks == 0;
     }
 
     public boolean isDone() {
-        return isDelayElapsed() && remainingIterations == 0 && !isIterationStartRequired && isScreenShotConfirmed;
+        return remainingIterations == 0;
     }
 
     public int getElapsedIterations() {
@@ -70,6 +78,22 @@ public class DataGenerationSchedule {
         return remainingDelayTicks;
     }
 
+    public boolean isIterationStartRequired() {
+        return isIterationStartRequired;
+    }
+
+    public boolean isTeleportConfirmed() {
+        return isTeleportConfirmed;
+    }
+
+    public void confirmTeleport() {
+        isTeleportConfirmed = true;
+    }
+
+    public boolean hasDelayStarted() {
+        return hasDelayStarted;
+    }
+
     public boolean isScreenShotRequested() {
         return isScreenShotRequested;
     }
@@ -82,11 +106,7 @@ public class DataGenerationSchedule {
         return isScreenShotConfirmed;
     }
 
-    public void setScreenShotConfirmed(boolean screenShotConfirmed) {
-        isScreenShotConfirmed = screenShotConfirmed;
-    }
-
-    public boolean isIterationStartRequired() {
-        return isIterationStartRequired;
+    public void confirmScreenShot() {
+        isScreenShotConfirmed = true;
     }
 }
