@@ -117,7 +117,7 @@ public class DataGenerationManager {
                     ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
 
                     schedule.setScreenShotRequested(true);
-                    System.out.println("Requested screenshot");
+                    System.out.println("Requested screenshot (Filename: " + fileName + ")");
                 }
                 // Screenshot was already confirmed by client
                 else if(schedule.isScreenShotConfirmed()) {
