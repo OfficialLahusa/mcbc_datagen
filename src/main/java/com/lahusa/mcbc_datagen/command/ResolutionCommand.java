@@ -10,7 +10,7 @@ public class ResolutionCommand {
         dispatcher.register(
             ClientCommandManager.literal("resolution").executes(
                 context -> {
-                    MinecraftClient.getInstance().getWindow().setWindowedSize(960, 540);
+                    MinecraftClient.getInstance().getWindow().setWindowedSize(640, 360);
                     return 1;
                 }
             )
