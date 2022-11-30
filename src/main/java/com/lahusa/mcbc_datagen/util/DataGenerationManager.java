@@ -153,6 +153,15 @@ public class DataGenerationManager {
         }
     }
 
+    public static boolean containsScheduleForPlayer(ServerPlayerEntity player) {
+        for (DataGenerationSchedule schedule : schedules) {
+            if (schedule.getPlayer() == player) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String getScreenShotFileName(ServerPlayerEntity player) {
         ServerWorld world = player.getWorld();
         BlockPos blockPos = player.getBlockPos();
@@ -168,7 +177,7 @@ public class DataGenerationManager {
         return biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + ".png";
     }
 
-    private static void cleanPlayerState(ServerPlayerEntity player) {
+    public static void cleanPlayerState(ServerPlayerEntity player) {
         // Clear inventory
         player.getInventory().clear();
 
