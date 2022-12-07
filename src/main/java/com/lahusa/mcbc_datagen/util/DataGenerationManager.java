@@ -81,6 +81,7 @@ public class DataGenerationManager {
             if(schedule.getElapsedIterations() == 0 && schedule.isIterationStartRequired()) {
                 // Unlock all content
                 unlockAllContent(player, server);
+                setClientResolution(player);
                 System.out.println("Unlocked player content");
             }
 
@@ -330,5 +331,9 @@ public class DataGenerationManager {
         PacketByteBuf hudHiddenPacketByteBuf = PacketByteBufs.create();
         hudHiddenPacketByteBuf.writeBoolean(hudHidden);
         ServerPlayNetworking.send(player, MCBCDataGenMod.SET_HUD_HIDDEN_PACKET_ID, hudHiddenPacketByteBuf);
+    }
+
+    private static void setClientResolution(ServerPlayerEntity player) {
+        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_RESOLUTION_CHANGE_PACKET_ID, PacketByteBufs.create());
     }
 }

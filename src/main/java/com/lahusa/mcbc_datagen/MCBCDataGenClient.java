@@ -1,8 +1,6 @@
 package com.lahusa.mcbc_datagen;
 
-import com.lahusa.mcbc_datagen.command.ResolutionCommand;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -36,11 +34,6 @@ public class MCBCDataGenClient implements ClientModInitializer {
             }
         });
 
-        // Clientside commands
-        ClientCommandRegistrationCallback.EVENT.register(
-            (dispatcher, registryAccess) -> ResolutionCommand.register(dispatcher)
-        );
-
         // Clientside network packet handlers
         // Selected slot update packet
         ClientPlayNetworking.registerGlobalReceiver(
@@ -56,6 +49,11 @@ public class MCBCDataGenClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(
                 MCBCDataGenMod.SET_HUD_HIDDEN_PACKET_ID,
                 (client, handler, buf, responseSender) -> client.options.hudHidden = buf.readBoolean()
+        );
+        // Force resolution packet
+        ClientPlayNetworking.registerGlobalReceiver(
+                MCBCDataGenMod.FORCE_RESOLUTION_CHANGE_PACKET_ID,
+                (client, handler, buf, responseSender) -> client.getWindow().setWindowedSize(640, 360)
         );
         // Force screenshot packet
         ClientPlayNetworking.registerGlobalReceiver(

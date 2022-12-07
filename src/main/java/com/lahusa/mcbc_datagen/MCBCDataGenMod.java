@@ -17,6 +17,7 @@ public class MCBCDataGenMod implements ModInitializer {
     public static final Identifier SET_HUD_HIDDEN_PACKET_ID = new Identifier(MODID, "set_hud_hidden");
     public static final Identifier FORCE_SCREENSHOT_PACKET_ID = new Identifier(MODID, "force_screenshot");
     public static final Identifier SCREENSHOT_CONFIRMATION_PACKET_ID = new Identifier(MODID, "screenshot_confirmation");
+    public static final Identifier FORCE_RESOLUTION_CHANGE_PACKET_ID = new Identifier(MODID, "force_resolution_change");
 
     @Override
     public void onInitialize() {
