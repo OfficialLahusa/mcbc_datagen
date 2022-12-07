@@ -6,7 +6,8 @@
   "mixins": [
     "LivingEntityMixin",
     "PlayerEntityMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "ServerWorldMixin"
   ],
   "client": [
     "AdvancementToastMixin",
