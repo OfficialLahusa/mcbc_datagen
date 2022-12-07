@@ -33,7 +33,8 @@ public class DataGenerationManager {
     private static final LinkedList<DataGenerationSchedule> schedules;
     private static final Random rand;
     // 10 second delay
-    private static final int DELAY_TICKS = 240;
+    private static final int WORLD_GEN_DELAY_TICKS = 220; // 11s
+    private static final int RAND_DELAY_TICKS = 20; // 1s
     private static PlayerManager serverPlayerManager;
 
     static {
@@ -60,71 +61,70 @@ public class DataGenerationManager {
         while(scheduleIterator.hasNext()) {
             DataGenerationSchedule schedule = scheduleIterator.next();
 
-            // Tick schedule
+            // Tick schedule (decrement delays)
             schedule.tick();
 
             ServerPlayerEntity player = schedule.getPlayer();
             MinecraftServer server = Objects.requireNonNull(player.getServer());
 
-            // All iterations done
-            if(schedule.isDone()) {
-                scheduleIterator.remove();
-
-                // Reset player to a clean state
-                cleanPlayerState(player);
-
-                System.out.println("Schedule finished and removed");
-                continue;
-            }
-
-            // Is first iteration
-            if(schedule.getElapsedIterations() == 0 && schedule.isIterationStartRequired()) {
-                // Unlock all content
-                unlockAllContent(player, server);
-                setClientResolution(player);
-                System.out.println("Unlocked player content");
-            }
-
-            // Iteration has to be randomized
-            if(schedule.isIterationStartRequired()) {
-                // Randomize state (Pos, Inv, ...)
-                randomizePlayerState(player);
-
-                // Start iteration
-                schedule.startIteration();
-
-                System.out.println(
-                        "Started iteration (" + (schedule.getElapsedIterations() + 1)
-                                + "/" + schedule.getTotalIterations() + ")"
-                );
-            }
-            // On TP confirmation
-            else if(schedule.isTeleportConfirmed() && !schedule.hasDelayStarted()) {
-                // Start
-                schedule.startDelay(DELAY_TICKS);
-
-                System.out.println("Teleport confirmed, started delay");
-            }
-            // Screenshot delay already passed
-            else if(schedule.isDelayElapsed()){
-                // Screenshot wasn't requested yet
-                if(!schedule.isScreenShotRequested()) {
-                    // Get screenshot filename
-                    String fileName = getScreenShotFileName(player);
-
-                    // Send force screenshot packet to client
-                    PacketByteBuf fileNameBuf = PacketByteBufs.create();
-                    fileNameBuf.writeString(fileName);
-                    ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
-
-                    schedule.setScreenShotRequested(true);
-                    System.out.println("Requested screenshot (Filename: " + fileName + ")");
+            // Handle cases
+            switch(schedule.getState()) {
+                case SCHED_INIT -> {
+                    unlockAllContent(player, server);
+                    setClientResolution(player);
+                    schedule.setState(DataGenerationSchedule.State.ITER_INIT);
                 }
-                // Screenshot was already confirmed by client
-                else if(schedule.isScreenShotConfirmed()) {
-                    // Start next iteration
-                    schedule.beginNewIteration();
-                    System.out.println("Got screenshot, ended iteration");
+                case ITER_INIT -> {
+                    // Reset player to a clean state
+                    cleanPlayerState(player);
+
+                    // Schedule done --> remove schedule & reset player
+                    if(schedule.isDone()) {
+                        scheduleIterator.remove();
+                        System.out.println("Schedule finished and removed");
+                    }
+                    // Schedule not done --> start next iteration
+                    else {
+                        // Teleport player
+                        randomizePosition(player);
+
+                        System.out.println(
+                                "Started iteration (" + (schedule.getElapsedIterations() + 1)
+                                        + "/" + schedule.getTotalIterations() + ")"
+                        );
+
+                        schedule.startDelay(WORLD_GEN_DELAY_TICKS);
+                        schedule.setState(DataGenerationSchedule.State.AWAIT_GEN_DELAY);
+                    }
+                }
+                case AWAIT_GEN_DELAY -> {
+                    if(schedule.isDelayElapsed()) {
+                        schedule.setState(DataGenerationSchedule.State.RANDOMIZATION);
+                    }
+                }
+                case RANDOMIZATION -> {
+                    // Randomize all parameters except position
+                    randomizePlayerState(player);
+                    schedule.startDelay(RAND_DELAY_TICKS);
+                    System.out.println("Started randomization");
+
+                    schedule.setState(DataGenerationSchedule.State.AWAIT_RAND_DELAY);
+                }
+                case AWAIT_RAND_DELAY -> {
+                    if(schedule.isDelayElapsed()) {
+                        // Request screenshot
+                        // Get screenshot filename
+                        String fileName = getScreenShotFileName(player);
+
+                        // Send force screenshot packet to client
+                        PacketByteBuf fileNameBuf = PacketByteBufs.create();
+                        fileNameBuf.writeString(fileName);
+                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
+
+                        System.out.println("Requested screenshot (Filename: " + fileName + ")");
+
+                        schedule.setState(DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF);
+                    }
                 }
             }
         }
@@ -141,15 +141,23 @@ public class DataGenerationManager {
     public static void handleScreenShotConfirmation(ServerPlayerEntity player) {
         for(DataGenerationSchedule schedule : schedules) {
             if(schedule.getPlayer() == player) {
-                schedule.confirmScreenShot();
+                if(schedule.getState() == DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF) {
+                    schedule.setState(DataGenerationSchedule.State.ITER_INIT);
+                    System.out.println("Got screenshot, ended iteration");
+                    schedule.beginNewIteration();
+                    break;
+                }
             }
         }
     }
 
     public static void handleTeleportConfirmation(ServerPlayerEntity player) {
         for(DataGenerationSchedule schedule : schedules) {
-            if(schedule.getPlayer() == player) {
-                schedule.confirmTeleport();
+            if(schedule.getPlayer() == player && schedule.getState() == DataGenerationSchedule.State.AWAIT_TP_CONFIRMATION) {
+                schedule.setState(DataGenerationSchedule.State.AWAIT_GEN_DELAY);
+                schedule.startDelay(WORLD_GEN_DELAY_TICKS);
+                System.out.println("Teleport confirmed, started delay");
+                break;
             }
         }
     }
@@ -200,7 +208,7 @@ public class DataGenerationManager {
         randomizeExperience(player);
         randomizeTimeAndWeather(player);
         randomizeHudVisibility(player);
-        randomizePosition(player);
+        randomizeRotation(player);
     }
 
     private static void randomizePosition(ServerPlayerEntity player) {
@@ -208,8 +216,6 @@ public class DataGenerationManager {
 
         int x = rand.nextInt(10000000);
         int z = rand.nextInt(10000000);
-        int yaw = rand.nextInt(360) - 180;
-        int pitch = rand.nextBetween(-30, 30);
 
         // Start force loading (Make data available before tp)
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
@@ -221,7 +227,17 @@ public class DataGenerationManager {
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), false);
 
         // TP
-        player.teleport(world, x, y , z, yaw, pitch);
+        player.teleport(world, x, y , z, player.getYaw(), player.getPitch());
+    }
+
+    private static void randomizeRotation(ServerPlayerEntity player) {
+        ServerWorld world = player.getWorld();
+
+        int yaw = rand.nextInt(360) - 180;
+        int pitch = rand.nextBetween(-30, 30);
+
+        // TP
+        player.teleport(world, player.getX(), player.getY(), player.getZ(), yaw, pitch);
     }
 
     private static void unlockAllContent(ServerPlayerEntity player, MinecraftServer server) {
