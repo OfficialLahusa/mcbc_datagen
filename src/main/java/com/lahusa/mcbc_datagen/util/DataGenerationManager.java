@@ -114,7 +114,7 @@ public class DataGenerationManager {
                     if(schedule.isDelayElapsed()) {
                         // Request screenshot
                         // Get screenshot filename
-                        String fileName = getScreenShotFileName(player);
+                        String fileName = getScreenShotFileName(player, schedule.getCapturedScreenShots());
 
                         // Send force screenshot packet to client
                         PacketByteBuf fileNameBuf = PacketByteBufs.create();
@@ -140,13 +140,22 @@ public class DataGenerationManager {
 
     public static void handleScreenShotConfirmation(ServerPlayerEntity player) {
         for(DataGenerationSchedule schedule : schedules) {
-            if(schedule.getPlayer() == player) {
-                if(schedule.getState() == DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF) {
+            if(schedule.getPlayer() == player && schedule.getState() == DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF) {
+                // Increment screenshot counter
+                schedule.setCapturedScreenShots(schedule.getCapturedScreenShots() + 1);
+
+                // Screenshots remain
+                if(schedule.getCapturedScreenShots() < schedule.getTotalScreenShots()) {
+                    schedule.setState(DataGenerationSchedule.State.RANDOMIZATION);
+                    System.out.println("Got screenshot");
+                }
+                // Screenshots are done
+                else {
                     schedule.setState(DataGenerationSchedule.State.ITER_INIT);
                     System.out.println("Got screenshot, ended iteration");
                     schedule.beginNewIteration();
-                    break;
                 }
+                break;
             }
         }
     }
@@ -171,7 +180,7 @@ public class DataGenerationManager {
         return false;
     }
 
-    private static String getScreenShotFileName(ServerPlayerEntity player) {
+    private static String getScreenShotFileName(ServerPlayerEntity player, int screenShotIndex) {
         ServerWorld world = player.getWorld();
         BlockPos blockPos = player.getBlockPos();
 
@@ -183,7 +192,7 @@ public class DataGenerationManager {
         // Get biome ID without namespace (e.g. "minecraft:plains" => "plains")
         String biomeID = biomeRegistryKey.get().getValue().getPath();
 
-        return biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + ".png";
+        return biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + "-" + screenShotIndex + ".png";
     }
 
     public static void cleanPlayerState(ServerPlayerEntity player) {

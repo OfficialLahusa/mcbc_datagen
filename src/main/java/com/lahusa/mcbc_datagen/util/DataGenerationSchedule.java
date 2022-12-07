@@ -6,6 +6,8 @@ public class DataGenerationSchedule {
     private final ServerPlayerEntity player;
     private final int totalIterations;
     private int elapsedIterations;
+    private int totalScreenShots;
+    private int capturedScreenShots;
     private int remainingDelayTicks;
     private State state;
 
@@ -13,6 +15,8 @@ public class DataGenerationSchedule {
         this.player = player;
         this.totalIterations = totalIterations;
         this.elapsedIterations = 0;
+        this.totalScreenShots = 10;
+        this.capturedScreenShots = 0;
         this.remainingDelayTicks = 0;
         this.state = State.SCHED_INIT;
     }
@@ -24,6 +28,7 @@ public class DataGenerationSchedule {
     public void beginNewIteration() {
         if(elapsedIterations == totalIterations) throw new IllegalStateException("There are no remaining iterations, cannot start");
         ++elapsedIterations;
+        capturedScreenShots = 0;
     }
 
     public void startDelay(int delayTicks) {
@@ -56,6 +61,22 @@ public class DataGenerationSchedule {
 
     public int getElapsedIterations() {
         return elapsedIterations;
+    }
+
+    public int getTotalScreenShots() {
+        return totalScreenShots;
+    }
+
+    public void setTotalScreenShots(int totalScreenShots) {
+        this.totalScreenShots = totalScreenShots;
+    }
+
+    public int getCapturedScreenShots() {
+        return capturedScreenShots;
+    }
+
+    public void setCapturedScreenShots(int capturedScreenShots) {
+        this.capturedScreenShots = capturedScreenShots;
     }
 
     public int getRemainingDelayTicks() {
