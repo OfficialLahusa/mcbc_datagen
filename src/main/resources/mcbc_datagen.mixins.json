@@ -10,6 +10,7 @@
   ],
   "client": [
     "AdvancementToastMixin",
+    "InGameHudMixin",
     "MinecraftClientAccessor",
     "MinecraftClientMixin"
   ],
