@@ -245,7 +245,7 @@ public class DataGenerationManager {
         ServerWorld world = player.getWorld();
 
         float yaw = player.getYaw() + 360.f / schedule.getTotalScreenShots();
-        if(yaw > 180) yaw -= 360;
+        if(yaw >= 180) yaw -= 360;
         float pitch = rand.nextBetween(-30, 45);
 
         // TP
