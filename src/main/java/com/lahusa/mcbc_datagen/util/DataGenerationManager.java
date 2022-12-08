@@ -226,7 +226,7 @@ public class DataGenerationManager {
         int x = rand.nextInt(10000000);
         int z = rand.nextInt(10000000);
         int yaw = rand.nextInt(360) - 180;
-        int pitch = rand.nextBetween(-45, 30);
+        int pitch = rand.nextBetween(-30, 45);
 
         // Start force loading (Make data available before tp)
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
@@ -246,7 +246,7 @@ public class DataGenerationManager {
 
         float yaw = player.getYaw() + 360.f / schedule.getTotalScreenShots();
         if(yaw > 180) yaw -= 360;
-        float pitch = rand.nextBetween(-25, 30);
+        float pitch = rand.nextBetween(-30, 45);
 
         // TP
         player.teleport(world, player.getX(), player.getY(), player.getZ(), yaw, pitch);
