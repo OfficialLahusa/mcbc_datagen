@@ -35,6 +35,7 @@ public class DataGenerationManager {
     // 10 second delay
     private static final int WORLD_GEN_DELAY_TICKS = 200; // 10s
     private static final int RAND_DELAY_TICKS = 20; // 1s
+    private static final int MIN_TOTAL_SCREENSHOTS = 5;
     private static PlayerManager serverPlayerManager;
 
     static {
@@ -86,7 +87,7 @@ public class DataGenerationManager {
                     // Schedule not done --> start next iteration
                     else {
                         // Teleport player
-                        randomizePosition(player);
+                        randomizePosition(player, schedule);
                         player.clearStatusEffects();
 
                         System.out.println(
@@ -220,25 +221,45 @@ public class DataGenerationManager {
         randomizeRotation(player, schedule);
     }
 
-    private static void randomizePosition(ServerPlayerEntity player) {
+    private static void randomizePosition(ServerPlayerEntity player, DataGenerationSchedule schedule) {
         ServerWorld world = player.getWorld();
 
-        int x = rand.nextInt(10000000);
-        int z = rand.nextInt(10000000);
-        int yaw = rand.nextInt(360) - 180;
-        int pitch = rand.nextBetween(-30, 45);
+        // Randomize position until we find a classifiable biome
+        for (int tries = 0; true; tries++) {
+            int x = rand.nextInt(10000000);
+            int z = rand.nextInt(10000000);
+            int yaw = rand.nextInt(360) - 180;
+            int pitch = rand.nextBetween(-30, 45);
 
-        // Start force loading (Make data available before tp)
-        world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
+            // Start force loading (Make data available before tp)
+            world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
 
-        // Get top non-leaf block
-        int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+            // Get top non-leaf block
+            int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
 
-        // Stop force loading
-        world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), false);
+            // Stop force loading
+            world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), false);
 
-        // TP
-        player.teleport(world, x, y , z, yaw, pitch);
+            // Get biome
+            Optional<RegistryKey<Biome>> biomeRegistryKey = world.getBiome(new BlockPos(x, y, z)).getKey();
+            if(biomeRegistryKey.isEmpty()) throw new IllegalStateException("BlockPos had no associated Biome");
+
+            // Check if the biome is part of our biome groupings
+            if (BiomeDistribution.contains(biomeRegistryKey.get())) {
+                BiomeGroup biomeGroup = BiomeDistribution.getGroup(biomeRegistryKey.get());
+
+                // Get the scale factor to determine how many screenshots are needed for this biome
+                int scaleFactor = biomeGroup.getScaleFactor();
+                schedule.setTotalScreenShots(MIN_TOTAL_SCREENSHOTS * scaleFactor);
+
+                System.out.println("Classifiable biome found: " + biomeRegistryKey.get().getValue().getPath() + " | " + biomeGroup.name() + ", scale factor: " + scaleFactor);
+                System.out.println("Unclassifiable biomes skipped: " + tries);
+
+                // TP
+                player.teleport(world, x, y , z, yaw, pitch);
+                break;
+            }
+        }
     }
 
     private static void randomizeRotation(ServerPlayerEntity player, DataGenerationSchedule schedule) {

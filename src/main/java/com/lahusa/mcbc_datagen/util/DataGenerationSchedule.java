@@ -15,7 +15,7 @@ public class DataGenerationSchedule {
         this.player = player;
         this.totalIterations = totalIterations;
         this.elapsedIterations = 0;
-        this.totalScreenShots = 10;
+        this.totalScreenShots = 0; // is properly set in DataGenerationManager.randomizePosition()
         this.capturedScreenShots = 0;
         this.remainingDelayTicks = 0;
         this.state = State.SCHED_INIT;
