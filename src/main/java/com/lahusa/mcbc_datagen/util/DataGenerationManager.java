@@ -246,7 +246,7 @@ public class DataGenerationManager {
 
         float yaw = player.getYaw() + 360.f / schedule.getTotalScreenShots();
         if(yaw > 180) yaw -= 360;
-        float pitch = rand.nextBetween(-45, 30);
+        float pitch = rand.nextBetween(-25, 30);
 
         // TP
         player.teleport(world, player.getX(), player.getY(), player.getZ(), yaw, pitch);
