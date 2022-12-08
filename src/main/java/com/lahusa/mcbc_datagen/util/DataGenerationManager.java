@@ -224,6 +224,8 @@ public class DataGenerationManager {
 
         int x = rand.nextInt(10000000);
         int z = rand.nextInt(10000000);
+        int yaw = rand.nextInt(360) - 180;
+        int pitch = rand.nextBetween(-45, 30);
 
         // Start force loading (Make data available before tp)
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), true);
@@ -235,17 +237,17 @@ public class DataGenerationManager {
         world.setChunkForced(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z), false);
 
         // TP
-        player.teleport(world, x, y , z, player.getYaw(), player.getPitch());
+        player.teleport(world, x, y , z, yaw, pitch);
     }
 
     private static void randomizeRotation(ServerPlayerEntity player) {
         ServerWorld world = player.getWorld();
 
-        int yaw = rand.nextInt(360) - 180;
-        int pitch = rand.nextBetween(-30, 30);
+        int yawShift = rand.nextBetween(40, 120);
+        int pitch = rand.nextBetween(-45, 30);
 
         // TP
-        player.teleport(world, player.getX(), player.getY(), player.getZ(), yaw, pitch);
+        player.teleport(world, player.getX(), player.getY(), player.getZ(), player.getYaw() + yawShift, pitch);
     }
 
     private static void unlockAllContent(ServerPlayerEntity player, MinecraftServer server) {
