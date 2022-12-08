@@ -119,11 +119,10 @@ public class DataGenerationManager {
                         // Send force screenshot packet to client
                         PacketByteBuf fileNameBuf = PacketByteBufs.create();
                         fileNameBuf.writeString(fileName);
-                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
 
                         System.out.println("Requested screenshot (Filename: " + fileName + ")");
-
                         schedule.setState(DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF);
+                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
                     }
                 }
             }
