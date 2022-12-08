@@ -33,7 +33,7 @@ public class DataGenerationManager {
     private static final LinkedList<DataGenerationSchedule> schedules;
     private static final Random rand;
     // 10 second delay
-    private static final int WORLD_GEN_DELAY_TICKS = 220; // 11s
+    private static final int WORLD_GEN_DELAY_TICKS = 200; // 10s
     private static final int RAND_DELAY_TICKS = 20; // 1s
     private static PlayerManager serverPlayerManager;
 
@@ -87,6 +87,7 @@ public class DataGenerationManager {
                     else {
                         // Teleport player
                         randomizePosition(player);
+                        player.clearStatusEffects();
 
                         System.out.println(
                                 "Started iteration (" + (schedule.getElapsedIterations() + 1)
@@ -104,7 +105,7 @@ public class DataGenerationManager {
                 }
                 case RANDOMIZATION -> {
                     // Randomize all parameters except position
-                    randomizePlayerState(player);
+                    randomizePlayerState(player, schedule);
                     schedule.startDelay(RAND_DELAY_TICKS);
                     System.out.println("Started randomization");
 
@@ -209,14 +210,14 @@ public class DataGenerationManager {
         setClientHudHidded(player, false);
     }
 
-    private static void randomizePlayerState(ServerPlayerEntity player) {
+    private static void randomizePlayerState(ServerPlayerEntity player, DataGenerationSchedule schedule) {
         randomizeInventory(player);
         randomizeGameMode(player);
         randomizeVisualStats(player);
         randomizeExperience(player);
         randomizeTimeAndWeather(player);
         randomizeHudVisibility(player);
-        randomizeRotation(player);
+        randomizeRotation(player, schedule);
     }
 
     private static void randomizePosition(ServerPlayerEntity player) {
@@ -240,14 +241,15 @@ public class DataGenerationManager {
         player.teleport(world, x, y , z, yaw, pitch);
     }
 
-    private static void randomizeRotation(ServerPlayerEntity player) {
+    private static void randomizeRotation(ServerPlayerEntity player, DataGenerationSchedule schedule) {
         ServerWorld world = player.getWorld();
 
-        int yawShift = rand.nextBetween(40, 120);
-        int pitch = rand.nextBetween(-45, 30);
+        float yaw = player.getYaw() + 360.f / schedule.getTotalScreenShots();
+        if(yaw > 180) yaw -= 360;
+        float pitch = rand.nextBetween(-45, 30);
 
         // TP
-        player.teleport(world, player.getX(), player.getY(), player.getZ(), player.getYaw() + yawShift, pitch);
+        player.teleport(world, player.getX(), player.getY(), player.getZ(), yaw, pitch);
     }
 
     private static void unlockAllContent(ServerPlayerEntity player, MinecraftServer server) {
