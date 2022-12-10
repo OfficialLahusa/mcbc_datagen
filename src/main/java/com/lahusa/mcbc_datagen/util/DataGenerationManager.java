@@ -250,10 +250,16 @@ public class DataGenerationManager {
 
                 // Get the scale factor to determine how many screenshots are needed for this biome
                 int scaleFactor = biomeGroup.getScaleFactor();
-                schedule.setTotalScreenShots(MIN_TOTAL_SCREENSHOTS * scaleFactor);
+                int addedFactor = biomeGroup.addedFactor();
+                int adjustedScaleFactor = scaleFactor + addedFactor;
 
-                System.out.println("Classifiable biome found: " + biomeRegistryKey.get().getValue().getPath() + " | " + biomeGroup.name() + ", scale factor: " + scaleFactor);
-                System.out.println("Unclassifiable biomes skipped: " + tries);
+                // We can skip if the adjustedScaleFactor is 0
+                if (adjustedScaleFactor == 0) continue;
+
+                schedule.setTotalScreenShots(MIN_TOTAL_SCREENSHOTS * adjustedScaleFactor);
+
+                System.out.println("Classifiable biome found: " + biomeRegistryKey.get().getValue().getPath() + " | " + biomeGroup.name() + ", scale factor: " + scaleFactor + " (+ " + addedFactor + ")");
+                System.out.println("Biomes skipped: " + tries); // Either unclassifiable or an adjustedScaleFactor of 0
 
                 // TP
                 player.teleport(world, x, y , z, yaw, pitch);
