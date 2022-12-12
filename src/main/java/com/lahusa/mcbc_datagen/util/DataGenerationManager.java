@@ -5,8 +5,10 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementProgress;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -327,8 +329,22 @@ public class DataGenerationManager {
     private static void randomizeTimeAndWeather(ServerPlayerEntity player) {
         boolean raining = rand.nextInt(5) == 0;
         boolean thundering = raining && rand.nextBoolean();
-        player.getWorld().setWeather(0, 0, raining, thundering);
-        player.getWorld().setTimeOfDay(rand.nextInt(24000));
+        ServerWorld world = player.getWorld();
+        world.setWeather(0, 0, raining, thundering);
+
+        long time = rand.nextInt(24000);
+        world.setTimeOfDay(time);
+
+        // If mob in lower end burning timeframe, remove it
+        if(time < 12575) {
+            for (Entity entity : world.iterateEntities()) {
+                if (entity instanceof HostileEntity) {
+                    entity.remove(Entity.RemovalReason.DISCARDED);
+                }
+            }
+        }
+
+
     }
 
     private static void randomizeGameMode(ServerPlayerEntity player) {
