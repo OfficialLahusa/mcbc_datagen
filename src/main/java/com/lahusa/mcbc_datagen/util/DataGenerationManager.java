@@ -35,7 +35,7 @@ public class DataGenerationManager {
     // 10 second delay
     private static final int WORLD_GEN_DELAY_TICKS = 200; // 10s
     private static final int RAND_DELAY_TICKS = 20; // 1s
-    private static final int MIN_TOTAL_SCREENSHOTS = 5;
+    private static final int MIN_TOTAL_SCREENSHOTS = 3;
     private static PlayerManager serverPlayerManager;
 
     static {
