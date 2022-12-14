@@ -29,6 +29,9 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class DataGenerationManager {
@@ -188,14 +191,20 @@ public class DataGenerationManager {
         BlockPos blockPos = player.getBlockPos();
 
         // Get biome
-        Optional<RegistryKey<Biome>> biomeRegistryKey = world.getBiome(blockPos).getKey();
+        Optional<RegistryKey<Biome>> biomeRegistryKeyOpt = world.getBiome(blockPos).getKey();
 
-        if(biomeRegistryKey.isEmpty()) throw new IllegalStateException("BlockPos had no associated Biome");
+        if(biomeRegistryKeyOpt.isEmpty()) throw new IllegalStateException("BlockPos had no associated Biome");
+
+        RegistryKey<Biome> biomeRegistryKey = biomeRegistryKeyOpt.get();
 
         // Get biome ID without namespace (e.g. "minecraft:plains" => "plains")
-        String biomeID = biomeRegistryKey.get().getValue().getPath();
+        String biomeID = biomeRegistryKey.getValue().getPath();
 
-        return biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + "-" + screenShotIndex + ".png";
+        String biomeGroup = String.valueOf(BiomeDistribution.getGroup(biomeRegistryKey)).toLowerCase();
+        String key = biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + "-" + screenShotIndex;
+        String sha1hash = Hash.getHexString(key);
+
+        return biomeGroup + "-" + sha1hash + ".png";
     }
 
     public static void cleanPlayerState(ServerPlayerEntity player) {
