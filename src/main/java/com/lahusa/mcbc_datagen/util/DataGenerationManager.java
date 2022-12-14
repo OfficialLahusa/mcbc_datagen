@@ -362,6 +362,9 @@ public class DataGenerationManager {
     private static void randomizeVisualStats(ServerPlayerEntity player) {
         HungerManager hungerManager = player.getHungerManager();
 
+        // Clear status effects
+        player.clearStatusEffects();
+
         // Set HP
         player.setHealth(rand.nextBetween(1,20));
 
