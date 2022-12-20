@@ -7,6 +7,7 @@ public class MetaData {
     private float pitch;
     private float yaw;
     private float fov;
+    private int time;
     private boolean hudVisible;
     private int selectedSlot;
     //long l = Runtime.getRuntime().maxMemory();
