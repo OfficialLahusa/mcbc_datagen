@@ -89,6 +89,7 @@ public class DataGenerationSchedule {
         AWAIT_TP_CONFIRMATION,
         AWAIT_GEN_DELAY,
         RANDOMIZATION,
+        MOB_REMOVAL,
         AWAIT_RAND_DELAY,
         AWAIT_SCREENSHOT_CONF
     }

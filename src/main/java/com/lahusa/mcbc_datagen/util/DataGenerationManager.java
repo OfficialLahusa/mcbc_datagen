@@ -24,6 +24,7 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
@@ -78,6 +79,7 @@ public class DataGenerationManager {
                 case SCHED_INIT -> {
                     unlockAllContent(player, server);
                     setClientResolution(player);
+                    server.setDifficulty(Difficulty.HARD, true);
                     schedule.setState(DataGenerationSchedule.State.ITER_INIT);
                 }
                 case ITER_INIT -> {
@@ -111,11 +113,25 @@ public class DataGenerationManager {
                 }
                 case RANDOMIZATION -> {
                     // Randomize all parameters except position
-                    randomizePlayerState(player, schedule);
-                    schedule.startDelay(RAND_DELAY_TICKS);
+                    boolean shouldRemoveMobs = randomizePlayerState(player, schedule);
                     System.out.println("Started randomization");
 
-                    schedule.setState(DataGenerationSchedule.State.AWAIT_RAND_DELAY);
+                    if(shouldRemoveMobs) {
+                        schedule.startDelay(RAND_DELAY_TICKS);
+                        schedule.setState(DataGenerationSchedule.State.AWAIT_RAND_DELAY);
+                    }
+                    else {
+                        schedule.startDelay(RAND_DELAY_TICKS / 2);
+                        schedule.setState(DataGenerationSchedule.State.MOB_REMOVAL);
+                        server.setDifficulty(Difficulty.PEACEFUL, true);
+                    }
+                }
+                case MOB_REMOVAL -> {
+                    if(schedule.isDelayElapsed()) {
+                        schedule.startDelay(RAND_DELAY_TICKS / 2);
+                        server.setDifficulty(Difficulty.HARD, true);
+                        schedule.setState(DataGenerationSchedule.State.AWAIT_RAND_DELAY);
+                    }
                 }
                 case AWAIT_RAND_DELAY -> {
                     if(schedule.isDelayElapsed()) {
@@ -222,14 +238,14 @@ public class DataGenerationManager {
         setClientHudHidded(player, false);
     }
 
-    private static void randomizePlayerState(ServerPlayerEntity player, DataGenerationSchedule schedule) {
+    private static boolean randomizePlayerState(ServerPlayerEntity player, DataGenerationSchedule schedule) {
         randomizeInventory(player);
         randomizeGameMode(player);
         randomizeVisualStats(player);
         randomizeExperience(player);
-        randomizeTimeAndWeather(player);
         randomizeHudVisibility(player);
         randomizeRotation(player, schedule);
+        return randomizeTimeAndWeather(player);
     }
 
     private static void randomizePosition(ServerPlayerEntity player, DataGenerationSchedule schedule) {
@@ -335,7 +351,7 @@ public class DataGenerationManager {
         ServerPlayNetworking.send(player, MCBCDataGenMod.INVENTORY_SLOT_CHANGE_PACKET_ID, slotPacketByteBuf);
     }
 
-    private static void randomizeTimeAndWeather(ServerPlayerEntity player) {
+    private static boolean randomizeTimeAndWeather(ServerPlayerEntity player) {
         boolean raining = rand.nextInt(5) == 0;
         boolean thundering = raining && rand.nextBoolean();
         ServerWorld world = player.getWorld();
@@ -344,16 +360,7 @@ public class DataGenerationManager {
         long time = rand.nextInt(24000);
         world.setTimeOfDay(time);
 
-        // If mob in lower end burning timeframe, remove it
-        if(time < 12575) {
-            for (Entity entity : world.iterateEntities()) {
-                if (entity instanceof HostileEntity) {
-                    entity.remove(Entity.RemovalReason.DISCARDED);
-                }
-            }
-        }
-
-
+        return time < 12575;
     }
 
     private static void randomizeGameMode(ServerPlayerEntity player) {
