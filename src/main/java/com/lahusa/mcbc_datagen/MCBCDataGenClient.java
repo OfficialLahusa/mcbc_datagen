@@ -62,7 +62,7 @@ public class MCBCDataGenClient implements ClientModInitializer {
         // Force resolution packet
         ClientPlayNetworking.registerGlobalReceiver(
                 MCBCDataGenMod.FORCE_RESOLUTION_CHANGE_PACKET_ID,
-                (client, handler, buf, responseSender) -> client.getWindow().setWindowedSize(640, 360)
+                (client, handler, buf, responseSender) -> client.getWindow().setWindowedSize(384, 216)
         );
         // Force screenshot packet
         ClientPlayNetworking.registerGlobalReceiver(
