@@ -12,22 +12,28 @@ import java.nio.file.StandardOpenOption;
 
 public class MetaDataWriter {
     private final Gson gson;
+    private final Path metaDir;
 
     public MetaDataWriter() {
         gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+        Path gameDir = FabricLoader.getInstance().getGameDir();
+        metaDir = gameDir.resolve("screenshots/meta");
+        // Create metadata directory
+        try {
+            Files.createDirectories(metaDir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void writeToFile(MetaData data, String filename) throws IOException {
-        Path gameDir = FabricLoader.getInstance().getGameDir();
-        Path metaDir = gameDir.resolve("screenshots/meta");
         Path metaFile = metaDir.resolve(filename);
         String content = gson.toJson(data);
         Files.writeString(
                 metaFile,
                 content,
                 StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING
+                StandardOpenOption.CREATE
         );
     }
 }

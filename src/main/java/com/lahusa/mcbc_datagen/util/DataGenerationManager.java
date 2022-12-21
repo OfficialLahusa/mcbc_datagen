@@ -30,9 +30,6 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.Biome;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class DataGenerationManager {
@@ -136,16 +133,13 @@ public class DataGenerationManager {
                 case AWAIT_RAND_DELAY -> {
                     if(schedule.isDelayElapsed()) {
                         // Request screenshot
-                        // Get screenshot filename
-                        String fileName = getScreenShotFileName(player, schedule.getCapturedScreenShots());
+                        // Get screenshot request data
+                        ScreenShotRequestData requestData = getScreenShotRequestData(player, schedule.getCapturedScreenShots());
 
                         // Send force screenshot packet to client
-                        PacketByteBuf fileNameBuf = PacketByteBufs.create();
-                        fileNameBuf.writeString(fileName);
-
-                        System.out.println("Requested screenshot (Filename: " + fileName + ")");
+                        System.out.println("Requested screenshot (Filename: " + requestData.getScreenShotFileName() + ")");
                         schedule.setState(DataGenerationSchedule.State.AWAIT_SCREENSHOT_CONF);
-                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, fileNameBuf);
+                        ServerPlayNetworking.send(player, MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID, requestData.getBuffer());
                     }
                 }
             }
@@ -202,7 +196,7 @@ public class DataGenerationManager {
         return false;
     }
 
-    private static String getScreenShotFileName(ServerPlayerEntity player, int screenShotIndex) {
+    private static ScreenShotRequestData getScreenShotRequestData(ServerPlayerEntity player, int screenShotIndex) {
         ServerWorld world = player.getWorld();
         BlockPos blockPos = player.getBlockPos();
 
@@ -220,7 +214,7 @@ public class DataGenerationManager {
         String key = biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + "-" + screenShotIndex;
         String sha1hash = Hash.getHexString(key);
 
-        return biomeGroup + "-" + sha1hash + ".png";
+        return new ScreenShotRequestData(biomeGroup, biomeID, sha1hash);
     }
 
     public static void cleanPlayerState(ServerPlayerEntity player) {

@@ -29,4 +29,14 @@ public class MetaData {
     private String clientHostName;
     private String biomeID;
     private String biomeGroup;
+
+    public MetaData()
+    {
+
+    }
+
+    public void setServerSideData(ScreenShotRequestData requestData) {
+        this.biomeGroup = requestData.getBiomeGroup();
+        this.biomeID = requestData.getBiomeID();
+    }
 }

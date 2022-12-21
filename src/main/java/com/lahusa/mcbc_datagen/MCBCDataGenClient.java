@@ -1,5 +1,8 @@
 package com.lahusa.mcbc_datagen;
 
+import com.lahusa.mcbc_datagen.util.MetaData;
+import com.lahusa.mcbc_datagen.util.MetaDataWriter;
+import com.lahusa.mcbc_datagen.util.ScreenShotRequestData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -12,13 +15,19 @@ import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.entity.player.PlayerInventory;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.IOException;
+
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 public class MCBCDataGenClient implements ClientModInitializer {
 
     private static KeyBinding unlockKey;
+    private static MetaDataWriter metaDataWriter;
 
     @Override
     public void onInitializeClient() {
+        // MetaDataWriter initialization
+        metaDataWriter = new MetaDataWriter();
+
         // Keybind registration
         unlockKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.mcbc_datagen.unlock", // The translation key of the keybinding's name
@@ -59,13 +68,26 @@ public class MCBCDataGenClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(
                 MCBCDataGenMod.FORCE_SCREENSHOT_PACKET_ID,
                 (client, handler, buf, responseSender) -> {
-                    String filename = buf.readString();
+                    // Read request data from packet
+                    ScreenShotRequestData requestData = new ScreenShotRequestData(buf);
+                    String filename = requestData.getScreenShotFileName();
+
                     ScreenshotRecorder.saveScreenshot(
                             FabricLoader.getInstance().getGameDir().toFile(),
                             filename,
                             client.getFramebuffer(),
                             (message) -> { }
                     );
+
+                    MetaData metaData = new MetaData();
+                    metaData.setServerSideData(requestData);
+
+                    // Write MetaData File
+                    try {
+                        metaDataWriter.writeToFile(metaData, requestData.getMetaDataFileName());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     // Send confirmation to server
                     ClientPlayNetworking.send(MCBCDataGenMod.SCREENSHOT_CONFIRMATION_PACKET_ID, PacketByteBufs.create());
