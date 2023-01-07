@@ -212,7 +212,16 @@ public class DataGenerationManager {
         String key = biomeID + "-" + blockPos.getX() + "_" + blockPos.getZ() + "-" + screenShotIndex;
         String sha1hash = Hash.getHexString(key);
 
-        return new ScreenShotRequestData(biomeGroup, biomeID, sha1hash);
+        return new ScreenShotRequestData(
+                sha1hash,
+                biomeGroup,
+                biomeID,
+                world.getSeed(),
+                System.currentTimeMillis(),
+                Runtime.getRuntime().maxMemory(),
+                Runtime.getRuntime().totalMemory(),
+                Runtime.getRuntime().freeMemory()
+        );
     }
 
     public static void cleanPlayerState(ServerPlayerEntity player) {

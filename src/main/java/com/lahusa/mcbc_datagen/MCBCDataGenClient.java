@@ -79,8 +79,7 @@ public class MCBCDataGenClient implements ClientModInitializer {
                             (message) -> { }
                     );
 
-                    MetaData metaData = new MetaData();
-                    metaData.setServerSideData(requestData);
+                    MetaData metaData = new MetaData(requestData);
 
                     // Write MetaData File
                     try {
