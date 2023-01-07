@@ -1,6 +1,16 @@
 package com.lahusa.mcbc_datagen.util;
 
 public class MetaData {
+    // Server Metadata
+    private String biomeID;
+    private String biomeGroup;
+    private int seed;
+    private long requestTimeStamp;
+    private long maxMemoryServer; //Runtime.getRuntime().maxMemory();
+    private long totalMemoryServer; //Runtime.getRuntime().totalMemory();
+    private long freeMemoryServer; //Runtime.getRuntime().freeMemory();
+
+    // Client Metadata
     private float x;
     private float y;
     private float z;
@@ -10,25 +20,13 @@ public class MetaData {
     private int time;
     private boolean hudVisible;
     private int selectedSlot;
-    //long l = Runtime.getRuntime().maxMemory();
-    //long m = Runtime.getRuntime().totalMemory();
-    //long n = Runtime.getRuntime().freeMemory();
-    private long maxMemoryClient;
-    private long totalMemoryClient;
-    private long freeMemoryClient;
-    private long maxMemoryServer;
-    private long totalMemoryServer;
-    private long freeMemoryServer;
-    //GlDebugInfo.getCpuInfo()
-    private String cpuInfo;
-    //GlDebugInfo.getVendor()
-    private String gpuVendor;
-    private int seed;
-    private long creationTimeStamp;
-    private long requestTimeStamp;
     private String clientHostName;
-    private String biomeID;
-    private String biomeGroup;
+    private String cpuInfo; //GlDebugInfo.getCpuInfo()
+    private String gpuVendor; //GlDebugInfo.getVendor()
+    private long creationTimeStamp;
+    private long maxMemoryClient; //Runtime.getRuntime().maxMemory();
+    private long totalMemoryClient; //Runtime.getRuntime().totalMemory();
+    private long freeMemoryClient; //Runtime.getRuntime().freeMemory();
 
     public MetaData()
     {
